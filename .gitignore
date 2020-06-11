@@ -4,16 +4,4 @@ CenterLoss/MNIST/*
 CenterLoss/Pics/*
 GAN/faces/
 *.jpg
-.idea/*
-
-PythonStudy/.idea/misc.xml
-PythonStudy/.idea/modules.xml
-PythonStudy/.idea/PythonStudy.iml
-PythonStudy/.idea/workspace.xml
-PythonStudy/.idea/inspectionProfiles/profiles_settings.xml
-VGGNet/.idea/.gitignore
-VGGNet/.idea/misc.xml
-VGGNet/.idea/modules.xml
-VGGNet/.idea/VGGNet.iml
-VGGNet/.idea/inspectionProfiles/profiles_settings.xml
-VGGNet/.idea/inspectionProfiles/Project_Default.xml
+*/.idea/*
