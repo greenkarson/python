@@ -5,3 +5,6 @@ CenterLoss/Pics/*
 GAN/faces/
 *.jpg
 */.idea/*
+*.pth
+*.JPEG
+*.txt
