@@ -9,5 +9,3 @@ class VGG(nn.Module):
     def forward(self, x):
         return x
 
-
-if __name__ == '__main__':
