@@ -7,3 +7,4 @@ GAN/__pycache__/data.cpython-37.pyc
 GAN/__pycache__/net.cpython-37.pyc
 GAN/faces/
 *.jpg
+FACE_MTCNN/__pycache__/celeba.cpython-37.pyc
