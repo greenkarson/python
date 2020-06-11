@@ -3,3 +3,7 @@ AlexNet/runs/events.out.tfevents.1590245405.KarsondeMacBook-Pro.local.7985.0
 CenterLoss/MNIST/*
 CenterLoss/__pycache__/*.pyc
 CenterLoss/Pics/*
+GAN/__pycache__/data.cpython-37.pyc
+GAN/__pycache__/net.cpython-37.pyc
+GAN/faces/
+*.jpg
