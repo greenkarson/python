@@ -28,7 +28,7 @@ warnings.filterwarnings(
 # Specify random seed for repeatable results
 torch.manual_seed(191009)
 
-data_path = r'D:\work\imagenet_1k/'
+data_path = '/Users/karson/PycharmProjects/Quantization/imagenet_1k'
 saved_model_dir = './data/'
 float_model_file = 'mobilenet_pretrained_float.pth'
 scripted_float_model_file = 'mobilenet_quantization_scripted.pth'
@@ -347,8 +347,11 @@ if __name__ == '__main__':
     evaluate(myModel, criterion, data_loader, neval_batches=num_calibration_batches)
     print('Post Training Quantization: Calibration done')
 
-    myModel.qconfig = torch.quantization.get_default_qconfig('fbgemm')
-    torch.quantization.convert(myModel, inplace=False)
+    # Convert to quantized model
+    # print(torch.backends.quantized._SupportedQEnginesProp())
+
+    # torch.backends.quantized.engine = 'qnnpack'
+    torch.quantization.convert(myModel, inplace=True)
     print('Post Training Quantization: Convert done')
     print('\n Inverted Residual Block: After fusion and quantization, note fused modules: \n\n',
           myModel.features[1].conv)

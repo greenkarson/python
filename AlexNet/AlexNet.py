@@ -25,7 +25,7 @@ class AlexNet(nn.Module):
         self.classfifier = nn.Sequential(
             # inplace 是否进行覆盖
             nn.Dropout(p=0.5, inplace=True),
-            nn.Linear(256*1*1, 4096),
+            nn.Linear(256*6*6, 4096),
             nn.ReLU(),
             nn.Dropout(p=0.5, inplace=True),
             nn.Linear(4096, 4096),
@@ -36,7 +36,7 @@ class AlexNet(nn.Module):
 
     def forward(self, x):
         x = self.sequential(x)
-        x = x.view(-1,256)
+        x = x.view(-1,256*6*6)
         x = self.classfifier(x)
         return x
 
@@ -49,15 +49,9 @@ class AlexNet(nn.Module):
         nn.init.constant_(self.sequential[10].bias, 1)
         nn.init.constant_(self.sequential[12].bias, 1)
 
-    def get_parameter_number(self):
-        total_num = sum(p.numel() for p in self.parameters())
-        trainable_num = sum(p.numel() for p in self.parameters() if p.requires_grad)
-        return {'Total': total_num, 'Trainable': trainable_num}
-
-
 
 if __name__ == '__main__':
-    a = torch.randn(4, 3, 64, 64)
+    a = torch.randn(4, 3, 224, 224)
     net = AlexNet()
     b = net(a)
-    print(net.get_parameter_number())
+    print(b.shape)

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *.wav
 *.jpg
 *.png
@@ -32,3 +33,22 @@ MTCNN/cebela/*
 yolov3_teach/*
 yolo/*
 
+=======
+*.pyc
+AlexNet/runs/events.out.tfevents.1590245405.KarsondeMacBook-Pro.local.7985.0
+CenterLoss/MNIST/*
+CenterLoss/Pics/*
+GAN/faces/
+*.jpg
+*/.idea/*
+*.pth
+*.JPEG
+*.txt
+*.pt
+deep_learning/data/*
+deep_learning/day01/logs/*
+deep_learning/day02/checkpoint/*
+deep_learning/day01/checkpoint/*
+deep_learning/day02/logs/*
+
+>>>>>>> 62cdeee4e2806e8b255c2983549708014c936922
