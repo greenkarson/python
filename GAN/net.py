@@ -19,7 +19,6 @@ class DNet(nn.Module):
             nn.BatchNorm2d(512),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(512, 1, 4, 1, padding=0, bias=False),
-            nn.Sigmoid()
         )
 
     def forward(self, img):
@@ -62,26 +61,30 @@ class DCGAN(nn.Module):
 
         self.loss_fn = nn.BCEWithLogitsLoss()
 
-    def forward(self, noise_d, noise_g, real_img):
+    def forward(self, noise):
+        return self.gnet(noise)
+
+    def get_D_loss(self, noise_d, real_img):
         real_y = self.dnet(real_img)
         g_img = self.gnet(noise_d)
         fake_y = self.dnet(g_img)
 
-        real_tag = torch.ones(real_img.size(0))
-        fake_tag = torch.ones(noise_d.size(0))
+        real_tag = torch.ones(real_img.size(0)).cuda()
+        fake_tag = torch.zeros(noise_d.size(0)).cuda()
 
         loss_real = self.loss_fn(real_y, real_tag)
         loss_fake = self.loss_fn(fake_y, fake_tag)
 
         loss_d = loss_fake + loss_real
+        return loss_d
 
+    def get_G_loss(self, noise_g):
         _g_img = self.gnet(noise_g)
         _real_y = self.dnet(_g_img)
-        _real_tag = torch.ones(noise_g.size(0))
+        _real_tag = torch.ones(noise_g.size(0)).cuda()
 
         loss_g = self.loss_fn(_real_y, _real_tag)
-
-        return loss_d, loss_g
+        return loss_g
 
 
 if __name__ == '__main__':

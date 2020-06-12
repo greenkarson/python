@@ -9,7 +9,7 @@ class GenData():
     def __init__(self, src_root, gen_root, image_size):
         self.image_size = image_size
 
-        self.src_image_path = f"{src_root}/img_celeba.7z"
+        self.src_image_path = f"{src_root}/img_celeba"
         self.src_anno_path = f"{src_root}/Anno/list_bbox_celeba.txt"
         self.src_landmark_path = f"{src_root}/Anno/list_landmarks_celeba.txt"
 
@@ -131,7 +131,7 @@ class GenData():
                         ))
                     part_label_txt.flush()
                     part_count += 1
-                elif iou < 0.3 and negative_count <= 40000:
+                elif iou < 0.3 and negative_count <= 90000:
                     clip_img.save(f"{self.negative_image_dir}/{negative_count}.jpg")
                     negative_label_txt.write(
                         "{0}.jpg {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13} {14} {15}\n".format(
@@ -165,7 +165,7 @@ class GenData():
                         ))
                     part_label_txt.flush()
                     part_count += 1
-                elif iou < 0.3 and negative_count <= 40000:
+                elif iou < 0.3 and negative_count <= 90000:
                     clip_img.save(f"{self.negative_image_dir}/{negative_count}.jpg")
                     negative_label_txt.write(
                         "{0}.jpg {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13} {14} {15}\n".format(
@@ -180,8 +180,8 @@ class GenData():
 
 
 if __name__ == '__main__':
-    dst_path = "/Users/karson/Downloads/Dataset/"
-    path = r"/Users/karson/Downloads/CelebA"
+    dst_path = r"F:\celeba/"
+    path = r"E:\dataset\CelebA/"
     gendata = GenData(path, dst_path, image_size=48)
     gendata.run(1)
 

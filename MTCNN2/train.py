@@ -14,15 +14,17 @@ class Train:
         self.img_size = img_size
 
         self.mydataset = MyDataset(root, img_size)
-        self.dataloader = DataLoader(self.mydataset, batch_size=1000, shuffle=True)
+        self.dataloader = DataLoader(self.mydataset, batch_size=1000, shuffle=True, num_workers=4)
 
         if img_size == 12:
-            self.net = PNet()
+            self.net = PNet().cuda()
+            self.net.load_state_dict(torch.load(r"param\pnet2020-05-15-21-43-13.pt"))
         elif img_size == 24:
-            self.net = RNet()
-            self.net.load_state_dict(torch.load("param/rnet2020-04-18-17-07-04.pt"))
+            self.net = RNet().cuda()
+            self.net.load_state_dict(torch.load(r"param\rnet2020-05-16-11-26-57.pt"))
         elif img_size == 48:
-            self.net = ONet()
+            self.net = ONet().cuda()
+            self.net.load_state_dict(torch.load(r"param\onet2020-05-15-21-52-22.pt"))
 
         self.opt = optim.Adam(self.net.parameters(), lr=1e-4)
 
@@ -31,6 +33,9 @@ class Train:
         for epoch in range(epochs):
             total_loss = 0
             for i, (img, tag) in enumerate(self.dataloader):
+                img = img.cuda()
+                tag = tag.cuda()
+
                 predict = self.net(img)
 
                 if self.img_size == 12:
@@ -73,5 +78,5 @@ class Train:
 
 
 if __name__ == '__main__':
-    train = Train("/Users/karson/Downloads/Dataset/", 24)
+    train = Train("D:\work\Dataset", 24)
     train(100000)

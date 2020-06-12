@@ -8,7 +8,7 @@ class Celeba():
     def __init__(self, dataset_root):
         self.dataset_folder = os.path.join(dataset_root, "CelebA")
         self.anno_folder = os.path.join(self.dataset_folder, "Anno")
-        self.image_folder = os.path.join(self.dataset_folder, "img_celeba.7z")
+        self.image_folder = os.path.join(self.dataset_folder, "img_celeba")
 
         self.box_anno = os.path.join(self.anno_folder, 'list_bbox_celeba.txt')
         self.landmarks_anno = os.path.join(self.anno_folder, 'list_landmarks_celeba.txt')

@@ -2,7 +2,7 @@ import os
 from PIL import Image
 from celeba import Celeba
 import numpy as np
-from tools.utils import iou
+from tools import utils
 
 
 class Gendata():
@@ -15,17 +15,13 @@ class Gendata():
 
         [os.makedirs(x) for x in (self.positive_dest, self.negative_dest, self.part_dest) if not os.path.exists(x)]
 
-        self.positive_mata_dest = os.path.join(self.net_data_folder, 'positive_meta.txt')
-        self.negative_mata_dest = os.path.join(self.net_data_folder, 'negative_mata.txt')
-        self.part_mata_dest = os.path.join(self.net_data_folder, 'part_mata.txt')
-
         self.crop_size = crop_size
         self.metadata = metadata
 
     def run(self):
-        positive_mata = open(os.path.join(self.net_data_folder, 'positive_meta.txt'), 'w')
-        negative_mata = open(os.path.join(self.net_data_folder, 'negative_mata.txt'), "w")
-        part_mata = open(os.path.join(self.net_data_folder, 'part_mata.txt'), 'w')
+        positive_meta = open(os.path.join(self.net_data_folder, 'positive_meta.txt'), 'w')
+        negative_meta = open(os.path.join(self.net_data_folder, 'negative_meta.txt'), "w")
+        part_meta = open(os.path.join(self.net_data_folder, 'part_meta.txt'), 'w')
 
         positive_count = 0
         negative_count = 0
@@ -54,8 +50,8 @@ class Gendata():
                     continue
 
                 size = np.random.randint(int(min(w, h) * 0.8), np.ceil(1.25 * max(w, h)))
-                delta_x = np.random.randint(-w * 0.2, w * 0.2)
-                delta_y = np.random.randint(-h * 0.2, h * 0.2)
+                delta_x = np.random.randint(- w * 0.2, w * 0.2)
+                delta_y = np.random.randint(- h * 0.2, h * 0.2)
 
                 nx1 = int(max(x1 + w / 2 + delta_x - size / 2, 0))
                 ny1 = int(max(y1 + h / 2 + delta_y - size / 2, 0))
@@ -65,7 +61,7 @@ class Gendata():
                 if nx2 > width or ny2 > height:
                     continue
 
-                crop_box = np.array([nx1,ny1,nx2,ny2])
+                crop_box = np.array([nx1, ny1, nx2, ny2])
 
                 offset_x1 = (x1 - nx1) / float(size)
                 offset_y1 = (y1 - ny1) / float(size)
@@ -75,20 +71,20 @@ class Gendata():
                 crop_img = img.crop(crop_box)
                 resize_img = crop_img.resize((self.crop_size, self.crop_size))
                 _box = np.array([x1, y1, x2, y2])
-
-                if iou(crop_box, _box) >= 0.65 and positive_count < 30000:
+                iou = utils.iou(_box, np.array([[nx1, ny1, nx2, ny2]]))
+                if iou >= 0.65 and positive_count < 30000:
                     positive_count += 1
-                    positive_mata.write(f"{positive_count}.jpg{1}{offset_x1}{offset_y1}{offset_x2}{offset_y2}\n")
+                    positive_meta.write(f"{positive_count}.jpg {1} {offset_x1} {offset_y1} {offset_x2} {offset_y2} \n")
                     resize_img.save(f"{self.positive_dest}/{positive_count}.jpg")
-                    positive_mata.flush()
+                    positive_meta.flush()
 
-                if iou(crop_box, _box) > 0.4 and part_count < 30000:
+                if iou > 0.4 and part_count < 30000:
                     part_count += 1
-                    part_mata.write(f"{part_count}.jpg{2}{offset_x1}{offset_y1}{offset_x2}{offset_y2}\n")
+                    part_meta.write(f"{part_count}.jpg {2} {offset_x1} {offset_y1} {offset_x2} {offset_y2} \n")
                     resize_img.save(f"{self.part_dest}/{part_count}.jpg")
-                    part_mata.flush()
+                    part_meta.flush()
 
-                size = np.random.randint(self.crop_size, min(width, height) / 2)
+                size = np.random.randint(self.crop_size, min(width, height)+1 / 2)
                 delta_x = np.random.randint(max(-size, -x1), w)
                 delta_y = np.random.randint(max(-size, -y1), h)
 
@@ -104,17 +100,22 @@ class Gendata():
                 crop_img = img.crop(crop_box)
                 resize_img = crop_img.resize((self.crop_size, self.crop_size))
                 _box = np.array([x1, y1, x2, y2])
-
-                if iou(crop_box, _box) < 0.3 and negative_count < 90000:
+                iou = utils.iou(_box, np.array([[nx1, ny1, nx2, ny2]]))
+                if iou < 0.3 and negative_count < 90000:
                     negative_count += 1
-                    negative_mata.write(f"{negative_count}.jpg{0}{0}{0}{0}{0}\n")
+                    negative_meta.write(f"{negative_count}.jpg {0} {0} {0} {0} {0} \n")
                     resize_img.save(f"{self.negative_dest}/{negative_count}.jpg")
-                    negative_mata.flush()
+                    negative_meta.flush()
+
+
+        positive_meta.close()
+        negative_meta.close()
+        part_meta.close()
 
 
 if __name__ == '__main__':
-    celeba = Celeba("/Users/karson/Downloads")
+    celeba = Celeba(r"E:\dataset")
     train, dev, test = celeba.split_data()
-    data = Gendata(train, '/Users/karson/Downloads/Test', 12, 'pnet')
+    data = Gendata(test, r'F:\celeba', 12, 'pnet_eval')
     data.run()
     print(data.positive_dest)

@@ -1,6 +1,6 @@
 import os, glob
 
-IMAGENET_DIR = '/Users/karson/Downloads/tiny-imagenet-200'
+IMAGENET_DIR = r'D:\work\tiny-imagenet-200'
 for root, dirs, files in os.walk(IMAGENET_DIR):
     if 'train' in root and 'images' in root:
         class_dir, _ = os.path.split(root)

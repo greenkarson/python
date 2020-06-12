@@ -20,12 +20,12 @@ class Train():
         self.Dataloader = DataLoader(self.dataset,
                                      batch_size=128,
                                      shuffle=True,
-                                     num_workers=2,
+                                     num_workers=4,
                                      pin_memory=False,
                                      drop_last=True,
                                      )
         print("Dataloader created")
-        self.net = AlexNet()
+        self.net = AlexNet().cuda()
         print("AlexNet created")
         self.loss_fn = nn.CrossEntropyLoss()
         print("loss_fn created")
@@ -39,6 +39,8 @@ class Train():
         for epoch in range(10000):
             lr_scheduler.step()
             for i, (imgs, classes) in enumerate(self.Dataloader):
+                imgs = imgs.cuda()
+                classes = classes.cuda()
 
                 output = self.net(imgs)
                 loss = self.loss_fn(output, classes)
@@ -47,34 +49,36 @@ class Train():
                 loss.backward()
                 self.opt.step()
 
-                if total_step % 10 == 0:
-                    with torch.no_grad():
-                        _, preds = torch.max(output,dim=1)
-                        accuracy = torch.sum(preds==classes)
 
-                        print(f"Epoch:{epoch + 1}----Step:{total_step}----Loss:{loss.item()}----Acc:{accuracy.item()}")
-                        self.summarywriter.add_scalar("loss", loss.item(), total_step)
-                        self.summarywriter.add_scalar("accurary", accuracy.item(), total_step)
+                with torch.no_grad():
+                    _, preds = torch.max(output, dim=1)
+                    accuracy = torch.sum(preds == classes)
 
-                if total_step % 100 == 0:
-                    with torch.no_grad():
-                        print("*" * 10)
-                        for name, parameter in self.net.named_parameters():
-                            if parameter.grad is not None:
-                                avg_grad = torch.mean(parameter.grad)
-                                print(f"{name} - grad_avg:{avg_grad}")
-                                self.summarywriter.add_scalar(f"grad_avg/{name}",avg_grad.item(),total_step)
-                                self.summarywriter.add_histogram(f"grad/{name}",parameter.cpu().numpy(),total_step)
+                    print(f"Epoch:{epoch + 1}----Step:{total_step}----Loss:{loss.item()}----Acc:{accuracy.item()}")
+                    self.summarywriter.add_scalar("loss", loss.item(), total_step)
+                    self.summarywriter.add_scalar("accurary", accuracy.item(), total_step)
 
-                            if parameter.data is not None:
-                                avg_weight = torch.mean(parameter.data)
-                                print(f"{name} - weight_avg:{avg_weight}")
-                                self.summarywriter.add_scalar(f"weight_avg/{name}", avg_weight.item(), total_step)
-                                self.summarywriter.add_histogram(f"weight/{name}", parameter.cpu().numpy(), total_step)
+
+
+                with torch.no_grad():
+                    print("*" * 50)
+                    for name, parameter in self.net.named_parameters():
+                        if parameter.grad is not None:
+                            avg_grad = torch.mean(parameter.grad)
+                            print(f"{name} - grad_avg:{avg_grad}")
+                            self.summarywriter.add_scalar(f"grad_avg/{name}", avg_grad.item(), total_step)
+                            self.summarywriter.add_histogram(f"grad/{name}", parameter.cpu().numpy(), total_step)
+
+                        if parameter.data is not None:
+                            avg_weight = torch.mean(parameter.data)
+                            print(f"{name} - grad_avg:{avg_weight}")
+                            self.summarywriter.add_scalar(f"weight_avg/{name}", avg_weight.item(), total_step)
+                            self.summarywriter.add_histogram(f"weight/{name}", parameter.cpu().numpy(), total_step)
+
 
             total_step += 1
 
 
 if __name__ == '__main__':
-    train = Train("/Users/karson/Downloads/tiny-imagenet-200/")
+    train = Train(r'D:\work\tiny-imagenet-200')
     train()

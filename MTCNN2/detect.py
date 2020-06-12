@@ -9,15 +9,15 @@ class Detector:
 
     def __init__(self):
         self.pnet = PNet()
-        self.pnet.load_state_dict(torch.load("param/pnet2020-04-19-00-09-26.pt"))
+        self.pnet.load_state_dict(torch.load(r"param\pnet2020-05-15-21-43-13.pt"))
         self.pnet.eval()
 
         self.rnet = RNet()
-        self.rnet.load_state_dict(torch.load("param/rnet2020-04-19-08-48-18.pt"))
+        self.rnet.load_state_dict(torch.load(r"param\rnet2020-05-16-12-38-44.pt"))
         self.rnet.eval()
 
         self.onet = ONet()
-        self.onet.load_state_dict(torch.load("param/onet2020-04-18-09-27-42.pt"))
+        self.onet.load_state_dict(torch.load(r"param\onet2020-05-15-21-52-22.pt"))
         self.onet.eval()
 
     def __call__(self, img):
