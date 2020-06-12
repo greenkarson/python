@@ -31,4 +31,5 @@ data/*
 MTCNN/cebela/*
 yolov3_teach/*
 yolo/*
-
+Quantization/imagenet_1k/*
+CenterLoss/MNIST/*
