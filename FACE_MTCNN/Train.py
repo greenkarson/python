@@ -1,4 +1,4 @@
-import torch,glob,os
+import torch, glob, os
 from torch.utils.data import DataLoader
 from torch import optim
 from torch import nn
@@ -15,6 +15,10 @@ class Trainer():
         self.train_dataset = MtcnnDataset(r'F:\celeba', net_stage=self.net_stage)
         self.train_dataloader = DataLoader(self.train_dataset, batch_size=1000, shuffle=True, num_workers=2,
                                            drop_last=True)
+
+        self.eval_dataset = MtcnnDataset(r"F:\celeba", net_stage=f"{self.net_stage}_eval")
+        self.eval_dataloader = DataLoader(self.eval_dataset, batch_size=1000, shuffle=True, num_workers=2,
+                                          drop_last=True)
 
         if self.net_stage == 'pnet':
             self.net = PNet()
@@ -80,7 +84,8 @@ class Trainer():
                                                              }, global_step=self.global_step)
                 self.global_step += 1
 
-            print(f"epoch:{self.epoch_num}---loss:{loss.cpu().item()}---cls_loss:{cls_loss.cpu().item()}---box_loss:{box_loss.cpu().item()}---landmark_loss:{landmark_loss.cpu().item()}")
+            print(
+                f"epoch:{self.epoch_num}---loss:{loss.cpu().item()}---cls_loss:{cls_loss.cpu().item()}---box_loss:{box_loss.cpu().item()}---landmark_loss:{landmark_loss.cpu().item()}")
             self.save_state_dict()
             self.export_model(f"./param/{self.net_stage}.pt")
 
@@ -90,14 +95,90 @@ class Trainer():
                         if parmeter.grad is not None:
                             avg_grad = torch.mean(parmeter.grad)
                             print(f"{name}----grad_avg:{avg_grad}")
-                            self.summarywrite.add_scalar(f"grad_avg/{name}",avg_grad.item(), self.epoch_num)
-                            self.summarywrite.add_histogram(f"grad/{name}",parmeter.cpu().numpy(),self.epoch_num)
+                            self.summarywrite.add_scalar(f"grad_avg/{name}", avg_grad.item(), self.epoch_num)
+                            self.summarywrite.add_histogram(f"grad/{name}", parmeter.cpu().numpy(), self.epoch_num)
                         if parmeter.data is not None:
                             avg_weight = torch.mean(parmeter.data)
                             print(f"{name}----weight_avg:{avg_weight}")
                             self.summarywrite.add_scalar(f"weight_avg/{name}", avg_weight.item(), self.epoch_num)
                             self.summarywrite.add_histogram(f"weight/{name}", parmeter.cpu().numpy(), self.epoch_num)
 
+            total = 0
+            right = 0
+            tp = 0
+            fp = 0
+            fn = 0
+            tn = 0
+
+            total_cls_loss = 0
+            total_box_loss = 0
+            total_landmark_loss = 0
+
+            for i, (img_data, label, box, landmarks) in enumerate(self.eval_dataloader):
+                if torch.cuda.is_available() is True:
+                    img_data = img_data.cuda()
+                    gt_label = label.cuda()
+                    gt_boxes = box.cuda()
+                    gt_landmarks = landmarks.cuda()
+                else:
+                    gt_label = label
+                    gt_boxes = box
+                    gt_landmarks = landmarks
+
+                with torch.no_grad():
+                    pred_label, pred_offset, pred_landmarks = self.net(img_data)
+                    pred_label, pred_offset, pred_landmarks
+
+                pred_label = pred_label.view(-1, 2)
+                pred_offset = pred_offset.view(-1, 4)
+                pred_landmarks = pred_landmarks.view(-1, 10)
+                total_cls_loss += self.cls_loss(gt_label, pred_label)
+                total_box_loss += self.box_loss(gt_label, gt_boxes, pred_offset)
+                total_landmark_loss += self.landmark_loss(gt_label, gt_landmarks, pred_landmarks)
+
+                pred_label = torch.argmax(pred_label, dim=1)
+
+                mask = gt_label <= 1
+
+                right += torch.sum(gt_label[mask] == pred_label[mask])
+                total += gt_label[mask].shape[0]
+
+                p_mask = gt_label == 1
+                tp += torch.sum(gt_label[p_mask] == pred_label[p_mask])
+                fp += torch.sum(gt_label[p_mask] != pred_label[p_mask])
+
+                n_mask = gt_label == 0
+                tn += torch.sum(gt_label[n_mask] == pred_label[n_mask])
+                fn += torch.sum(gt_label[n_mask] != pred_label[n_mask])
+
+            # acc = right.cpu().detach() / total
+            acc = torch.true_divide(right, total)
+            # precision = tp / (tp + fp)
+            precision = torch.true_divide(tp, (tp + fp))
+            # recall = tp / (tp + fn)
+            recall = torch.true_divide(tp, (tp + fn))
+            # f1 = 2 * precision * recall / (precision + recall)
+            f1 = torch.true_divide((2 * precision * recall), (precision + recall))
+
+            avg_cls_loss = total_cls_loss / i
+            avg_box_loss = total_box_loss / i
+            avg_lanmark_loss = total_landmark_loss / i
+
+            self.summarywrite.add_scalars("eval/loss", {i: j for i, j in
+                                                        zip(["avg_cls_loss", "avg_box_loss", "avg_lanmark_loss"],
+                                                            [avg_cls_loss.cpu().item(),
+                                                             avg_box_loss.cpu().item(), avg_lanmark_loss.cpu().item()])
+                                                        }, global_step=self.epoch_num)
+
+            self.summarywrite.add_scalars("eval_set", {
+                i: j for i, j in
+                zip(["acc", "precision", "recall", "f1"], [acc, precision, recall, f1])
+            }, global_step=self.epoch_num)
+            print("Epoch %d, " % self.epoch_num,
+                  f"result on eval set: acc {acc.cpu().item()}",
+                  f"precision {precision.cpu().item()}",
+                  f"recall {recall.cpu().item()}",
+                  f"f1 {f1.cpu().item()}")
             self.epoch_num += 1
 
     def cls_loss(self, gt_label, pred_label):
