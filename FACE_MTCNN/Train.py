@@ -127,7 +127,8 @@ class Trainer():
 
                 with torch.no_grad():
                     pred_label, pred_offset, pred_landmarks = self.net(img_data)
-                    pred_label, pred_offset, pred_landmarks
+                    print(pred_label, pred_offset, pred_landmarks)
+
 
                 pred_label = pred_label.view(-1, 2)
                 pred_offset = pred_offset.view(-1, 4)
@@ -275,5 +276,5 @@ class Trainer():
 
 
 if __name__ == '__main__':
-    train = Trainer("pnet", resume=True)
+    train = Trainer("rnet", resume=True)
     train()
